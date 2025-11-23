@@ -1,8 +1,12 @@
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { Trophy, RotateCcw, CheckCircle2, XCircle } from "lucide-react";
+import { Input } from "@/components/ui/input";
+import { Trophy, RotateCcw, CheckCircle2, XCircle, Save } from "lucide-react";
 import { QuizQuestion } from "@/data/quizData";
+import { useState } from "react";
+import { addLeaderboardEntry, isTopScore } from "@/lib/leaderboard";
+import { useToast } from "@/hooks/use-toast";
 
 interface QuizResultsProps {
   score: number;
@@ -22,6 +26,30 @@ export const QuizResults = ({
   userAnswers,
 }: QuizResultsProps) => {
   const percentage = Math.round((score / totalQuestions) * 100);
+  const [name, setName] = useState("");
+  const [isSaved, setIsSaved] = useState(false);
+  const { toast } = useToast();
+  
+  const canSaveScore = isTopScore(score, totalQuestions);
+
+  const handleSaveScore = () => {
+    if (!name.trim()) {
+      toast({
+        title: "Name required",
+        description: "Please enter your name to save your score",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    addLeaderboardEntry(name.trim(), score, totalQuestions);
+    setIsSaved(true);
+    
+    toast({
+      title: "Score saved!",
+      description: `Congratulations ${name}! Your score has been added to the leaderboard.`,
+    });
+  };
 
   return (
     <motion.div
@@ -77,6 +105,49 @@ export const QuizResults = ({
               </div>
             </div>
           </div>
+
+          {/* Save Score Section */}
+          {canSaveScore && !isSaved && (
+            <motion.div
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.5 }}
+              className="space-y-3"
+            >
+              <p className="text-sm text-muted-foreground">
+                🎉 Great job! Save your score to the leaderboard:
+              </p>
+              <div className="flex gap-2 max-w-md mx-auto">
+                <Input
+                  type="text"
+                  placeholder="Enter your name"
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                  onKeyDown={(e) => e.key === "Enter" && handleSaveScore()}
+                  className="flex-1"
+                  maxLength={20}
+                />
+                <Button
+                  onClick={handleSaveScore}
+                  variant="secondary"
+                  className="flex-shrink-0"
+                >
+                  <Save className="w-4 h-4 mr-2" />
+                  Save
+                </Button>
+              </div>
+            </motion.div>
+          )}
+
+          {isSaved && (
+            <motion.p
+              initial={{ opacity: 0, scale: 0.9 }}
+              animate={{ opacity: 1, scale: 1 }}
+              className="text-sm text-accent font-medium"
+            >
+              ✓ Score saved to leaderboard!
+            </motion.p>
+          )}
 
           <Button
             onClick={onRestart}
