@@ -2,19 +2,29 @@ import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Brain, Sparkles } from "lucide-react";
+import { Leaderboard } from "@/components/Leaderboard";
+import { getLeaderboard } from "@/lib/leaderboard";
+import { useState, useEffect } from "react";
 
 interface QuizStartProps {
   onStart: () => void;
 }
 
 export const QuizStart = ({ onStart }: QuizStartProps) => {
+  const [leaderboard, setLeaderboard] = useState(getLeaderboard());
+
+  useEffect(() => {
+    // Refresh leaderboard when component mounts
+    setLeaderboard(getLeaderboard());
+  }, []);
+
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.6 }}
-      className="w-full max-w-2xl mx-auto px-4"
-    >
+    <div className="w-full max-w-4xl mx-auto px-4 space-y-6">
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.6 }}
+      >
       <Card className="relative overflow-hidden shadow-glow border-2">
         <div className="absolute inset-0 bg-gradient-primary opacity-5" />
         
@@ -60,6 +70,16 @@ export const QuizStart = ({ onStart }: QuizStartProps) => {
           </Button>
         </div>
       </Card>
-    </motion.div>
+      </motion.div>
+
+      {/* Leaderboard */}
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.6, delay: 0.2 }}
+      >
+        <Leaderboard entries={leaderboard} />
+      </motion.div>
+    </div>
   );
 };
